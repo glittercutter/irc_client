@@ -1,0 +1,8 @@
+*.o
+*.d
+*.out
+*.swp
+*~
+*.dll
+*.exe
+irc
