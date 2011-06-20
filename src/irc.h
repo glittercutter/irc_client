@@ -1,7 +1,5 @@
 #pragma once
 
-	#define BOOST_THREAD_USE_LIB 
-
 #include <unordered_map>
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
