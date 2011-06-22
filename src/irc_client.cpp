@@ -10,7 +10,7 @@
   freely
 */
 
-#include "irc.h"
+#include "irc_client.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
@@ -256,6 +256,7 @@ void Network::handleReaded(const boost::system::error_code& error, size_t byteRe
 void Network::parseReaded(size_t byteReceived)
 {
 	char c[READ_BUFFER_SIZE];
+	if (byteReceived > READ_BUFFER_SIZE) return;
 	memcpy(c, boost::asio::buffer_cast<const char*>(mReadBuffer.data()), byteReceived);
 	c[byteReceived] = '\0';
 	mReadBuffer.consume(byteReceived);
@@ -341,6 +342,7 @@ void Network::handleWrited(const boost::system::error_code& error)
 
 void Network::setConnected(bool connected/* = true*/)
 {
+	mOutputCallback(Message("Connected", mName));
 	mIsConnected = connected;
 	if (connected)
 		if (!mWriteQueue.empty())
@@ -351,6 +353,7 @@ void Network::setConnected(bool connected/* = true*/)
 Manager::Manager(boost::function<void(const Message&)> outputCallback)
 :	mOutputCallback(outputCallback), mIO_Service_ExitThread(false)
 {
+	mStayAliveWork = new boost::asio::io_service::work(mIO_Service);
 	mThread = new boost::thread(&Manager::run, this);
 }
 
@@ -359,10 +362,9 @@ Manager::~Manager()
 {
 	while (!mNetworks.empty())
 		disconnect(mNetworks.begin()->second);
-
-	mIO_Service_ExitThread = true;
+	
+	delete mStayAliveWork;
 	mIO_Service.stop();
-	notifyThread();
 	mThread->join();
 	delete mThread;
 }
@@ -376,7 +378,6 @@ Network* Manager::connect(
 	const std::string& password/* = ""*/)
 {
 	Network* network = new Network(this, outputCallback, networkName, port, nick, password);
-	notifyThread();
 	mNetworks.insert(std::pair<std::string, Network*>(networkName, network));
 	return network;
 }
@@ -394,20 +395,7 @@ void Manager::disconnect(const std::string& networkName)
 
 void Manager::run()
 {
-	boost::unique_lock<boost::mutex> lock(mIO_Service_Mutex);
-
-	while (!mIO_Service_ExitThread)
-	{
-		mIO_Service.run();
-		mIO_Service.reset();
-		mIO_Service_ConditionVariable.wait(lock);
-	}
-}
-
-
-void Manager::notifyThread()
-{
-	mIO_Service_ConditionVariable.notify_one();
+	mIO_Service.run();
 }
 
 

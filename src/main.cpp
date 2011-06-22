@@ -1,4 +1,4 @@
-#include "irc.h"
+#include "irc_client.h"
 
 #include <iostream>
 

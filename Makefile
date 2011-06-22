@@ -67,10 +67,10 @@ create_dir :
 
 #############################################################################
 OBJ = \
-	$(OBJDIR)/irc.o \
+	$(OBJDIR)/irc_client.o \
 	$(OBJDIR)/main.o \
 
-$(OBJDIR)/irc.o : $(SRCDIR)/irc.cpp; $(DO_CC)
+$(OBJDIR)/irc_client.o : $(SRCDIR)/irc_client.cpp; $(DO_CC)
 $(OBJDIR)/main.o : $(SRCDIR)/main.cpp; $(DO_CC)
 
 

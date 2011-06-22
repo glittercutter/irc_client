@@ -124,17 +124,15 @@ public:
 
 private:
 	void doDisconnect();
-	void notifyThread();
 	void run();
 	
 	boost::function<void(const Message&)> mOutputCallback;
 	std::unordered_map<std::string, Network*> mNetworks;
-	boost::asio::io_service mIO_Service;
 	boost::thread* mThread;
 	
+	boost::asio::io_service mIO_Service;
 	bool mIO_Service_ExitThread;
-	boost::mutex mIO_Service_Mutex;
-	boost::condition_variable mIO_Service_ConditionVariable;
+	boost::asio::io_service::work* mStayAliveWork;
 };
 
 } // IRC_Client
